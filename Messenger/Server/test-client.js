@@ -22,7 +22,7 @@ ws.on('open', () => {
 
     // Send a direct message to another user
     ws.send(JSON.stringify({ action: 'send_direct', username: 'userTest', recipient: 'user2', message: 'Hi user2!'}, null, 4));
-    ws.send(JSON.stringify({ action: 'send_direct', username: 'userTest', recipient: 'user2', message: 'What\'s up?'}, null, 4));
+    ws.send(JSON.stringify({ action: 'send_direct', username: 'userTest', recipient: 'my_username', message: 'What\'s up?'}, null, 4));
 
     // Retrieve the list of users
     ws.send(JSON.stringify({ action: 'get_users'}, null, 4));
