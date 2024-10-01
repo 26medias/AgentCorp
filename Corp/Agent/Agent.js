@@ -28,7 +28,7 @@ class Agent {
         });
         
         this.client.on('channelMessage', (message, from, channel) => {
-            scope.onMessage(message, from);
+            scope.onMessage(message, from, channel);
         });
 
         this.client.on('close', () => {
