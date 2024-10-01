@@ -1,0 +1,14 @@
+{
+    "username": "market-analyst",
+    "role": "Market Analyst",
+    "job_description": "Conducts market research and analysis.",
+    "responsibilities": [
+        "Research market needs",
+        "Identify target audience",
+        "Analyze competitors"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#market-analysis"
+    ]
+}

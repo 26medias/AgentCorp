@@ -1,0 +1,14 @@
+{
+    "username": "financial-analyst",
+    "role": "Financial Analyst",
+    "job_description": "Creates the financial plan, including income, expenses, and profitability projections.",
+    "responsibilities": [
+        "Project income",
+        "Estimate expenses",
+        "Analyze profitability"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#financial-plan"
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "username": "ScienceExpert",
+    "role": "Science Consultant",
+    "job_description": "Provides scientific insights and ensures the scientific accuracy of the story elements.",
+    "responsibilities": [
+        "Provide scientific insights and background",
+        "Ensure scientific accuracy of story elements",
+        "Consult on technological descriptions"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#science-consultation",
+        "#plot-development"
+    ]
+}

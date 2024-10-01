@@ -1,0 +1,117 @@
+{
+    "project": {
+        "name": "aurora-breakfast-plan",
+        "description": "Generate a detailed business plan for a Breakfast restaurant in Aurora, Ontario.",
+        "specs": "## Project Specs\n\n### Objective\nTo create a comprehensive business plan for a breakfast restaurant in Aurora, Ontario.\n\n### Sections to Include\n1. **Executive Summary** - Overview of the business idea.\n2. **Market Analysis** - Research on market needs, target audience, and competitors.\n3. **Marketing Plan** - Strategies for attracting and retaining customers.\n4. **Operations Plan** - Day-to-day operations, staff requirements, and logistics.\n5. **Financial Plan** - Projected income, expenses, and profitability.\n6. **Menu Development** - Detailed menu including pricing.\n7. **Location Analysis** - Best locations based on foot traffic, rent, and demographics."
+    },
+    "messenger": {
+        "channels": [
+            "#general",
+            "#market-analysis",
+            "#marketing-plan",
+            "#operations-plan",
+            "#financial-plan",
+            "#menu-development",
+            "#location-analysis"
+        ]
+    },
+    "agents": [
+        {
+            "username": "PM",
+            "role": "Project Manager",
+            "job_description": "Oversees the project, assigns tasks, validates work, and decides project completion.",
+            "responsibilities": [
+                "Assign initial tasks to other agents",
+                "Validate the work being done",
+                "Decide when the project is completed"
+            ],
+            "messenger_channels": [
+                "#general"
+            ]
+        },
+        {
+            "username": "market-analyst",
+            "role": "Market Analyst",
+            "job_description": "Conducts market research and analysis.",
+            "responsibilities": [
+                "Research market needs",
+                "Identify target audience",
+                "Analyze competitors"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#market-analysis"
+            ]
+        },
+        {
+            "username": "marketing-strategist",
+            "role": "Marketing Strategist",
+            "job_description": "Develops marketing strategies to attract and retain customers.",
+            "responsibilities": [
+                "Create marketing strategies",
+                "Develop customer retention plans",
+                "Collaborate with Market Analyst for insights"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#marketing-plan"
+            ]
+        },
+        {
+            "username": "operations-specialist",
+            "role": "Operations Specialist",
+            "job_description": "Plans day-to-day operations and logistics.",
+            "responsibilities": [
+                "Develop operations plan",
+                "Determine staff requirements",
+                "Plan logistics"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#operations-plan"
+            ]
+        },
+        {
+            "username": "financial-analyst",
+            "role": "Financial Analyst",
+            "job_description": "Creates the financial plan, including income, expenses, and profitability projections.",
+            "responsibilities": [
+                "Project income",
+                "Estimate expenses",
+                "Analyze profitability"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#financial-plan"
+            ]
+        },
+        {
+            "username": "menu-developer",
+            "role": "Menu Developer",
+            "job_description": "Develops the menu and sets pricing.",
+            "responsibilities": [
+                "Create menu items",
+                "Set pricing",
+                "Ensure menu aligns with market needs"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#menu-development"
+            ]
+        },
+        {
+            "username": "location-analyst",
+            "role": "Location Analyst",
+            "job_description": "Analyzes best locations for the restaurant based on various factors.",
+            "responsibilities": [
+                "Analyze foot traffic",
+                "Evaluate rent prices",
+                "Study demographic data"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#location-analysis"
+            ]
+        }
+    ]
+}

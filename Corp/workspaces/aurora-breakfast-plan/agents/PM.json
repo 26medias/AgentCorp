@@ -1,0 +1,13 @@
+{
+    "username": "PM",
+    "role": "Project Manager",
+    "job_description": "Oversees the project, assigns tasks, validates work, and decides project completion.",
+    "responsibilities": [
+        "Assign initial tasks to other agents",
+        "Validate the work being done",
+        "Decide when the project is completed"
+    ],
+    "messenger_channels": [
+        "#general"
+    ]
+}

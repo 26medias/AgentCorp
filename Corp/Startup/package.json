@@ -1,8 +1,8 @@
 {
-  "name": "corp-agent",
+  "name": "corp-startup",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "init.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "openai": "^4.66.1",
-    "ws": "^8.18.0"
+    "openai": "^4.65.0"
   }
 }

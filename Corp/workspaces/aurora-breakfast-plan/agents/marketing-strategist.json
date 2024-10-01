@@ -1,0 +1,14 @@
+{
+    "username": "marketing-strategist",
+    "role": "Marketing Strategist",
+    "job_description": "Develops marketing strategies to attract and retain customers.",
+    "responsibilities": [
+        "Create marketing strategies",
+        "Develop customer retention plans",
+        "Collaborate with Market Analyst for insights"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#marketing-plan"
+    ]
+}

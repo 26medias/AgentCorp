@@ -1,6 +1,6 @@
 // MessengerClient.js
-const WebSocket = require('ws');
-const EventEmitter = require('events');
+import WebSocket from 'ws';
+import { EventEmitter } from 'events';
 
 class MessengerClient extends EventEmitter {
     constructor(url, username) {
@@ -8,16 +8,14 @@ class MessengerClient extends EventEmitter {
         this.url = url;
         this.username = username;
         this.ws = null;
-
-        this.connect();
     }
 
-    connect() {
+    connect(server_name='test_server') {
         this.ws = new WebSocket(this.url);
 
         this.ws.on('open', () => {
             // Set server name
-            this.ws.send(JSON.stringify({ action: 'set_name', name: 'test_server' }));
+            this.ws.send(JSON.stringify({ action: 'set_name', name: server_name }));
 
             // Register the user
             this.ws.send(JSON.stringify({ action: 'register', username: this.username }));
@@ -87,4 +85,4 @@ class MessengerClient extends EventEmitter {
     }
 }
 
-module.exports = MessengerClient;
+export default MessengerClient;

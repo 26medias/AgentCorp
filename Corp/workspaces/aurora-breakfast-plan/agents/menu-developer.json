@@ -1,0 +1,14 @@
+{
+    "username": "menu-developer",
+    "role": "Menu Developer",
+    "job_description": "Develops the menu and sets pricing.",
+    "responsibilities": [
+        "Create menu items",
+        "Set pricing",
+        "Ensure menu aligns with market needs"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#menu-development"
+    ]
+}
