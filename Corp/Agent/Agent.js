@@ -2,6 +2,7 @@ import fs from 'fs';
 import MessengerClient from './MessengerClient.js';
 import Embeddings from './Embeddings.js'
 import GPTService from './GPTService.js';
+import History from './History.js';
 
 class Agent {
     constructor(workspace_directory, username) {
@@ -10,10 +11,10 @@ class Agent {
     }
 
     async init() {
-        const scope = this;
         this.metadata = JSON.parse(fs.readFileSync(`${this.workspace_directory}/agents/${this.username}.json`, 'utf8'));
         this.project = JSON.parse(fs.readFileSync(`${this.workspace_directory}/project.json`, 'utf8'));
-        this.memory = new Embeddings(`${this.workspace_directory}/agents/${this.username}`);
+        this.memory = new Embeddings(`${this.workspace_directory}/agents/embeddings/${this.username}`);
+        this.history = new History(`${this.workspace_directory}/agents/${this.username}`);
         this.gpt = new GPTService(process.env.OPENAI_API_KEY);
         await this.connectToMessenger();
     }
@@ -50,12 +51,14 @@ class Agent {
 
     async onDM(message, from) {
         console.log("DM:", { message, from });
-        const { id, embeddings } = await this.memory.store(message, { from });
+        const { id, embeddings } = await this.memory.store(message, { from, isDM: true });
+        await this.history.add(message, { from, isDM: true, id });
     }
 
     async onMessage(message, from, channel) {
         console.log("Channel:", { message, from, channel });
         const { id, embeddings } = await this.memory.store(message, { from, channel });
+        await this.history.add(message, { from, channel, isDM: false, id });
     }
 }
 

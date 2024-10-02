@@ -1,0 +1,2 @@
+adc44801-d51f-4827-b88a-0ca309cfd3c9|2024-10-02T02:36:29.869Z|{"from":"username","channel":"some_channel"}
+84ecfa8a-9bb0-4fab-86b7-f9bd7dc3d552|2024-10-02T02:36:29.870Z|{"from":"other_user","channel":"other_channel"}
