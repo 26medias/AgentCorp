@@ -10,7 +10,7 @@ class GPTService {
     }
 
     // Universal method to call GPT with history support
-    async callGPT(systemPrompt, userPrompt, responseType = "json_object", model = "gpt-4o", temperature = 0.7) {
+    async callGPT(systemPrompt, userPrompt, model = "gpt-4o", temperature = 0.7, responseType = "json_object") {
         try {
             const messages = [
                 { role: 'system', content: systemPrompt },
@@ -37,18 +37,31 @@ class GPTService {
         }
     }
 
-    // Method to load a prompt from file, replace variables, and call GPT
-    async ask(promptFilename, variables = {}) {
+    // Method to load a prompt from file and replace variables
+    getPrompt(filename, variables = {}) {
         try {
             // Load the prompt from file
-            const promptData = fs.readFileSync(promptFilename, 'utf8');
-            
+            const promptData = fs.readFileSync(filename, 'utf8');
+
             // Replace variables in the prompt (e.g., {goal: "my goal"})
-            let userPrompt = promptData;
+            let modifiedPrompt = promptData;
             for (const [key, value] of Object.entries(variables)) {
                 const regex = new RegExp(`\\{${key}\\}`, 'g');
-                userPrompt = userPrompt.replace(regex, value);
+                modifiedPrompt = modifiedPrompt.replace(regex, value);
             }
+
+            return modifiedPrompt;
+        } catch (error) {
+            console.error("Error loading prompt file:", error);
+            throw error;
+        }
+    }
+
+    // Method to load a prompt, replace variables, and call GPT
+    async ask(promptFilename, variables = {}) {
+        try {
+            // Get the modified prompt using the new method
+            const userPrompt = this.getPrompt(promptFilename, variables);
 
             // Define the system prompt (customizable)
             const systemPrompt = 'You are a helpful assistant specializing in managing AI-driven project teams.';
@@ -64,7 +77,7 @@ class GPTService {
                 throw error;
             }
         } catch (error) {
-            console.error("Error loading prompt file:", error);
+            console.error("Error in ask method:", error);
             throw error;
         }
     }

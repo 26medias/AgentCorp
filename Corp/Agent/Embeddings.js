@@ -10,8 +10,9 @@ class Embeddings {
             apiKey: process.env.OPENAI_API_KEY,
         });
 
+        // Ensure the storage directory and all parent directories exist
         if (!fs.existsSync(storageDir)) {
-            fs.mkdirSync(storageDir);
+            fs.mkdirSync(storageDir, { recursive: true });  // Create all necessary directories
         }
 
         if (!fs.existsSync(this.embeddingsFile)) {
