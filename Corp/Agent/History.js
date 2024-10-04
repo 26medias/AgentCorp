@@ -65,6 +65,23 @@ class History {
         return results;
     }
 
+    // Fetch history entries by their IDs
+    async getById(ids) {
+        await this._ensureDirectory();
+        const indexEntries = await this._readIndex();
+        const matchedEntries = indexEntries.filter(entry => ids.includes(entry.id));
+
+        // Fetch the content for matched entries
+        const results = [];
+        for (const entry of matchedEntries) {
+            const contentFilePath = path.join(this.directory, `${entry.id}.txt`);
+            const content = await fs.readFile(contentFilePath, 'utf-8');
+            results.push({ ...entry, content });
+        }
+
+        return results;
+    }
+
     // Helper to read and parse the index file
     async _readIndex() {
         const indexData = await fs.readFile(this.indexFilePath, 'utf-8');
@@ -95,4 +112,6 @@ await history.add("other content", {from: "other_user", channel: "other_channel"
 const allResults = await history.get();
 const fromUsername = await history.get({from: "username"});
 const last5Channel = await history.get({channel: "some_channel"}, 5);
+const specificEntries = await history.getById(["123e4567-e89b", "456a7890-d12c"]);
 */
+
