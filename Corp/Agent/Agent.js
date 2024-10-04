@@ -102,7 +102,24 @@ class Agent {
     }
 
     async executeActions(actions) {
-
+        let i;
+        let output = [];
+        for (i in actions) {
+            const action = actions[i];
+            switch (actions) {
+                case "readFiles":
+                break;
+                case "writeFiles":
+                break;
+                case "runShellCommand":
+                break;
+                case "sendChannelMessage":
+                break;
+                case "sendDM":
+                break;
+            }
+        }
+        return output;
     }
 
     async newThinkThread(options) {
