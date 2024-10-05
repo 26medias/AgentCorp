@@ -1,2 +1,4 @@
-Potentially relevant context (`[channel][user] message`):
+## Potentially relevant context (`[channel][user] message`):
+
 {messages}
+

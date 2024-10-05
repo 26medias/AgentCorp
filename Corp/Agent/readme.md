@@ -128,7 +128,7 @@
 {
     "action_outputs": [
         {
-            "action": "writeFiles",
+            "action": "glob",
             "output": {
                 "*.md": "[\"project.md\", \"specs/specs.md\"]",
                 "specs/**/*": "[\"specs/specs.md\", \"specs/project.md\", \"specs/test/test.txt\"]"

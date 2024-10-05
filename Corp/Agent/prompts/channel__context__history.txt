@@ -1,2 +1,4 @@
-Last messages in channel `{channel}`:
+## Last messages in channel `{channel}`:
+
 {messages}
+

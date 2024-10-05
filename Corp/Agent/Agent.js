@@ -1,4 +1,6 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import MessengerClient from './MessengerClient.js';
 import Embeddings from './Embeddings.js'
 import GPTService from './GPTService.js';
@@ -11,6 +13,12 @@ class Agent {
     constructor(workspace_directory, username) {
         this.workspace_directory = workspace_directory;
         this.username = username;
+    }
+
+    getFile(relativePath) {
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        return path.resolve(__dirname, relativePath);
     }
 
     async init() {
@@ -130,7 +138,7 @@ class Agent {
                         output: response
                     });
                 break;
-                case "sendChannelMessage":
+                case "sendChannelMessages":
                     for (j in action.data) {
                         const item = action.data[j]
                         await this.sendChannelMessage(item.channel, item.message, action.request_reply, threadId);
@@ -140,7 +148,7 @@ class Agent {
                         output: true
                     });
                 break;
-                case "sendDM":
+                case "sendDMs":
                     for (j in action.data) {
                         const item = action.data[j]
                         await this.sendDM(item.to, item.message, action.request_reply, threadId);
@@ -162,6 +170,10 @@ class Agent {
     }
 
     async getHistoryContext(options, limit) {
+        console.log("getHistoryContext", {options, limit})
+        if (!options.channel || !options.to || ["startup", "instruct"].includes(options.type)) {
+            return {contextPrompt: '', msgIds: []};
+        }
         // Get the channel history
         const history = await this.history.get({channel: options.channel}, limit);
         const messages = history.map(message => {
@@ -170,25 +182,37 @@ class Agent {
         const msgIds = history.map(item => item.id);
         let contextPrompt;
         if (!options.isDM) {
-            contextPrompt = this.gpt.getPrompt("./prompts/channel__context__history.txt", {...options, messages});
+            contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/channel__context__history.txt"), {...options, messages});
         } else {
-            contextPrompt = this.gpt.getPrompt("./prompts/DM__context__history.txt", {...options, messages});
+            contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/DM__context__history.txt"), {...options, messages});
         }
+        console.log({contextPrompt});
         return {contextPrompt, msgIds};
     }
 
     async getRelevantContext(options, limit, excludeIds) {
+        console.log("getRelevantContext", {options, limit, excludeIds})
+        if (["startup", "instruct"].includes(options.type)) {
+            return {contextPrompt: '', msgIds: []};
+        }
         // Find the most relevant messages accross every channels & DMs
         let history = await this.memory.match(options.prompt, limit);
+        console.log({history});
         // Exclude the ones within `excludeIds`
-        history = history.filter(item => !excludeIds.contains(item.id));
+        if (excludeIds && excludeIds.length > 0) {
+            history = history.filter(item => !excludeIds.contains(item.id));
+        }
         const msgIds = history.map(item => item.id);
-        messages = history.map(message => {
+        console.log({msgIds});
+        const messages = history.map(message => {
             return `[${message.metas.channel}][${message.metas.from}] ${message.content}`;
         }).join("\n");
-        const contextPrompt = this.gpt.getPrompt("./prompts/context__relevant.txt", {...options, messages});
+        console.log({messages});
+        const contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/context__relevant.txt"), {...options, messages});
+        console.log({contextPrompt});
         return {contextPrompt, msgIds};
     }
+
 
     async newThinkThread(options) {
         options = {
@@ -202,28 +226,60 @@ class Agent {
             ...options
         };
 
+        console.log("");
+        console.log(`====== ${this.username} ======`);
+        console.log("newThinkThread", options)
+
         // Fetch the context
-        const {historyContext, historyContextMsgIds} = await this.getHistoryContext(options, 25);
-        const {relevantContext, relevantContextMsgIds} = await this.getRelevantContext(options, 25, historyContextMsgIds);
+        const {contextPrompt: historyContext, msgIds: historyContextMsgIds} = await this.getHistoryContext(options, 25);
+        const {contextPrompt: relevantContext, msgIds: relevantContextMsgIds} = await this.getRelevantContext(options, 25, historyContextMsgIds);
 
-        const role_prompt = this.gpt.getPrompt(`./prompts/${options.type}.txt`, {});
+        console.log({historyContext});
+        console.log({relevantContext});
 
-        const system_prompt = this.gpt.getPrompt("./prompts/system.txt", {
+        const role_prompt = this.gpt.getPrompt(this.getFile(`./prompts/role.txt`), {
+            username: this.metadata.username,
+            role: this.metadata.role,
+            job_description: this.metadata.job_description,
+            responsibilities: '- '+this.metadata.responsibilities.join('\n- '),
+            messenger_channels: '- '+this.metadata.messenger_channels.join('\n- '),
+            agents: this.project.agents.map(agent => `- ${agent.username} (${agent.role})\n  Job description: ${agent.job_description}`).join('\n')
+        });
+        const type_prompt = this.gpt.getPrompt(this.getFile(`./prompts/${options.type}.txt`), options);
+
+        const system_prompt = this.gpt.getPrompt(this.getFile("./prompts/system.txt"), {
+            type_prompt,
             role_prompt,
             historyContext,
             relevantContext
         });
 
-        const response = await this.gpt.callGPT(system_prompt, options.prompt); //await this.gpt.ask(system_prompt, options.prompt);
+        console.log("");
+        console.log(`====== ${this.username} ======`);
+        console.log(system_prompt);
+
+        //const response = await this.gpt.callGPT(system_prompt, options.prompt); //await this.gpt.ask(system_prompt, options.prompt);
+        const response = {
+            "actions": [{
+                "action": "sendChannelMessages",
+                "data": [
+                    {
+                        "channel": "#general",
+                        "message": `Hello world from ${this.username}!`
+                    }
+                ]
+            }],
+            "next_steps": "wait and see"
+        }
         if (!response.next_steps && !response.actions) {
             return true;
         } else {
             // has actions
-            const actionResponse = await this.executeActions(response);
+            const actionResponse = await this.executeActions(response.actions);
             return await this.newThinkThread({
                 ...options,
                 type: 'action_loop',
-                prompt: actionResponse
+                prompt: JSON.stringify(actionResponse, null, 4)
             })
         }
     }
@@ -337,7 +393,7 @@ class Agent {
         const { eid, embeddings } = await this.memory.store(msg, { from, to: this.username, channel, msgId, threadId });
         await this.history.add(msg, { from, to: this.username, channel, isDM: false, eid, msgId, threadId });
         // Need to act on it?
-        if (request_reply.includes(this.username)) {
+        if (request_reply && request_reply.includes(this.username)) {
             // Action requested
             await this.newThinkThread({
                 type: 'channel__reply-requested',
@@ -354,6 +410,13 @@ class Agent {
             const isDone = await this.msgStatus.done(threadId, from);
             // TODO: Consider handling 'isDone' result if needed
         }
+    }
+
+    async instruct(prompt) {
+        await this.newThinkThread({
+            type: 'instruct',
+            prompt: prompt
+        })
     }
 }
 

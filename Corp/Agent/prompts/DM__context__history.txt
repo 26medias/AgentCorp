@@ -1,2 +1,4 @@
-Last direct messages between {from} and {to}:
+## Last direct messages between {from} and {to}:
+
 {messages}
+

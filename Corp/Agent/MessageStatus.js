@@ -41,7 +41,7 @@ class MessageStatus {
         const status = this.statuses.get(name);
 
         if (!status) {
-            throw new Error(`No status found for name: ${name}`);
+            return null;
         }
 
         // Remove the user from the Set of users who still need to respond

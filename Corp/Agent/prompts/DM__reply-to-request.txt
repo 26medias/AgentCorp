@@ -1,0 +1,6 @@
+## Instructions
+
+{from} has requested an answer from you on a direct message.
+You are now in a loop.
+You do not have to reply immediately, you can plan your actions over multiple turns if you need to execute actions first and/or work collaboratively with other team members before replying.
+You will need to reply before you end your loop.

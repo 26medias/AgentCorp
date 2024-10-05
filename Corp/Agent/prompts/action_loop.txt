@@ -1,0 +1,4 @@
+## Instructions
+
+You have are in a loop, you have previously requested actions to be executed.
+Look at the output of your actions and decide what do to next.

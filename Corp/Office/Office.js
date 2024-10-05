@@ -28,6 +28,8 @@ class Office {
                 scope.agents[projectData.agents[i].username] = new Agent(this.workspaceDirectory, projectData.agents[i].username);
                 await scope.agents[projectData.agents[i].username].init();
             }
+            //scope.agents["PM"].sendChannelMessage("#general", "PM first message", null, null)
+            scope.agents["PM"].instruct("Let's start this project! Where do we start?")
         } catch (error) {
             console.error('Error creating workspace:', error);
         }

@@ -12,26 +12,32 @@ You are operating on a loop, operating carefully, step by step:
 3. You receive the detailed output of your actions
 4. You execute more actions (back to 2.) or signal you are done (end of loop)
 
-Rules:
+## Rules:
 - If you request replies, the next loop iteration will wait for & include their replies
 - Close the loop when you're done
 
 
+{role_prompt}
+
 ## Available actions:
 
-**readFiles**
+**glob**: Returns the matching files within the shared workspace on the next loop
+
+`["glob_pattern", "glob_pattern", ...]`
+
+**readFiles**: Reads a file and returns its content on the next loop
 
 `["filename", "filename", ...]`
 
-**writeFiles**
+**writeFiles**: Write content to a file and returns the confirmation on the next loop
 
 `[{"filename": "", "content": ""}, ...]`
 
-**runShellCommand**
+**runShellCommand**: Run a shell command and returns its output on the next loop
 
 `{"command": "npm install"}`
 
-**sendChannelMessage**
+**sendChannelMessage**: Send messages to channels
 
 ```
 [
@@ -43,7 +49,7 @@ Rules:
 ]
 ```
 
-**sendDM**
+**sendDM**: Send direct messages
 
 ```
 {
@@ -56,14 +62,15 @@ Rules:
 
 ## If you want to execute actions: Reply using the following JSON response example:
 
-- `threadId` is given to you by the user
-- `next_steps` is for your own personnal planning during the loop. Use this to keep track of your next actions and as memory/state management to achieve your goal by the end of the loop.
-
+`next_steps` is for your own personnal planning during the loop. Use this to keep track of your next actions and as memory/state management to achieve your goal by the end of the loop.
 
 ```
 {
-    "threadId": "4d977bd9-8f20-4c4a-815a-dbb63ed232a2",
     "actions": [
+        {
+            "action": "glob",
+            "data": ["*.md", "specs/**/*"]
+        },
         {
             "action": "writeFiles",
             "data": [
@@ -112,12 +119,60 @@ Rules:
 }
 ```
 
-### If you are done and which to break the loop: Reply using the following JSON response example:
+On the next loop, you would receive back:
+```
+{
+    "action_outputs": [
+        {
+            "action": "glob",
+            "output": {
+                "*.md": "[\"project.md\", \"specs/specs.md\"]",
+                "specs/**/*": "[\"specs/specs.md\", \"specs/project.md\", \"specs/test/test.txt\"]"
+            }
+        },
+        {
+            "action": "writeFiles",
+            "output": {
+                "test.js": "success",
+                "test.md": "success"
+            }
+        },
+        {
+            "action": "runShellCommand",
+            "output": "hello world"
+        },
+        {
+            "action": "sendChannelMessages",
+            "output": true
+        },
+        {
+            "action": "sendDMs",
+            "output": true
+        },
+        {
+            "action": "readFiles",
+            "output": {
+                "specs.md": "# Project Specs\n\ntodo.",
+                "main.js": "const main = () => {\n    console.log('todo');\n}"
+            }
+        }
+    ]
+}
+```
+
+You can then request more actions or be done (break the loop)
+
+If you are done and which to break the loop: Reply using the following JSON response example:
 
 ```
 {
-    "threadId": "4d977bd9-8f20-4c4a-815a-dbb63ed232a2",
     "actions": false,
     "next_steps": false
 }
 ```
+
+{historyContext}
+
+{relevantContext}
+
+{type_prompt}
