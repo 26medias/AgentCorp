@@ -5,6 +5,7 @@ import GPTService from './GPTService.js';
 import History from './History.js';
 import MessageStatus from './MessageStatus.js';
 import Tree from './Tree.js';
+import WorkspaceOp from './WorkspaceOp.js';
 
 class Agent {
     constructor(workspace_directory, username) {
@@ -13,6 +14,7 @@ class Agent {
     }
 
     async init() {
+        // TODO: Add error handling for file reads
         this.metadata   = JSON.parse(fs.readFileSync(`${this.workspace_directory}/agents/${this.username}.json`, 'utf8'));
         this.project    = JSON.parse(fs.readFileSync(`${this.workspace_directory}/project.json`, 'utf8'));
         
@@ -21,6 +23,8 @@ class Agent {
         this.msgStatus  = new MessageStatus(); // Async message state management
         this.tree       = new Tree(); // Thread tree
         this.gpt        = new GPTService(process.env.OPENAI_API_KEY); // GPT wrapper
+        this.ops        = new WorkspaceOp(this.workspace_directory);
+
         await this.connectToMessenger();
     }
 
@@ -39,6 +43,7 @@ class Agent {
 
         this.client.on('close', () => {
             console.log('Connection closed');
+            // TODO: Implement reconnection logic if necessary
         });
 
         return new Promise((resolve, reject) => {
@@ -49,6 +54,7 @@ class Agent {
                 resolve(true);
             });
             scope.client.on('error', (err) => {
+                // TODO: Enhance error handling, possibly with retries or alerts
                 reject(err);
             });
         });
@@ -70,6 +76,7 @@ class Agent {
                 "request_reply": ["userA", "userB"]
             }
         */
+        // TODO: Add try-catch to handle JSON parsing errors
         const msg = JSON.parse(message);
         return msg
     }
@@ -80,6 +87,7 @@ class Agent {
         const messages = history.map(message => {
             return `[${message.metadata.from}] ${message.content}`;
         }).join("\n");
+        // FIXME: 'messages' is a string here; 'messages.map' will cause an error
         const msgIds = messages.map(item => item.id);
         let contextPrompt;
         if (!options.isDM) {
@@ -92,6 +100,7 @@ class Agent {
 
     async getRelevantContext(options, limit, excludeIds) {
         const history = await this.memory.match(options.prompt, limit);
+        // FIXME: 'messages' is not defined before this line
         const msgIds = messages.map(item => item.id).filter(id => !excludeIds.contains(id));
         let messages = await this.history.getById(msgIds)
         messages = history.map(message => {
@@ -101,22 +110,67 @@ class Agent {
         return {contextPrompt, msgIds};
     }
 
-    async executeActions(actions) {
-        let i;
+    async executeActions(actions, threadId=null) {
+        let i, j;
         let output = [];
         for (i in actions) {
             const action = actions[i];
-            switch (actions) {
+            switch (action.action) {
                 case "readFiles":
+                    const readBuffer = {};
+                    for (j in action.data) {
+                        const filename = action.data[j];
+                        // TODO: Add error handling for file read operations
+                        const response = await this.ops.readFile(filename);
+                        readBuffer[filename] = response;
+                    }
+                    output.push({
+                        action: action.action,
+                        output: readBuffer
+                    });
                 break;
                 case "writeFiles":
+                    const writeBuffer = {};
+                    for (j in action.data) {
+                        const item = action.data[j];
+                        // FIXME: 'filename' is undefined; should use 'item.filename'
+                        const response = await this.ops.writeFile(item.filename, item.content);
+                        writeBuffer[filename] = response;
+                    }
+                    output.push({
+                        action: action.action,
+                        output: writeBuffer
+                    });
                 break;
                 case "runShellCommand":
+                    // FIXME: Executing shell commands can be a security risk
+                    const response = await this.ops.runShellCommand(action.data.command);
+                    output.push({
+                        action: action.action,
+                        output: response
+                    });
                 break;
                 case "sendChannelMessage":
+                    for (j in action.data) {
+                        const item = action.data[j]
+                        await this.sendChannelMessage(item.channel, item.message, action.request_reply, threadId);
+                    }
+                    output.push({
+                        action: action.action,
+                        output: true
+                    });
                 break;
                 case "sendDM":
+                    for (j in action.data) {
+                        const item = action.data[j]
+                        await this.sendDM(item.to, item.message, action.request_reply, threadId);
+                    }
+                    output.push({
+                        action: action.action,
+                        output: true
+                    });
                 break;
+                // TODO: Handle unknown actions or add a default case
             }
         }
         return output;
@@ -138,6 +192,7 @@ class Agent {
         const {historyContext, historyContextMsgIds} = await this.getHistoryContext(options, 25);
         const {relevantContext, relevantContextMsgIds} = await this.getRelevantContext(options, 25, historyContextMsgIds);
 
+        // TODO: Ensure prompt files exist and handle missing files
         const role_prompt = this.gpt.getPrompt(`./prompts/${options.type}.txt`, {});
 
         const system_prompt = this.gpt.getPrompt("./prompts/system.txt", {
@@ -146,6 +201,7 @@ class Agent {
             relevantContext
         });
 
+        // TODO: Add error handling for GPT service interactions
         const response = await this.gpt.ask(system_prompt, options.prompt);
         if (!response.next_steps && !response.actions) {
             return true;
@@ -171,6 +227,7 @@ class Agent {
         this.client.DM(to, msg);
 
         // Record the message
+        // FIXME: Ensure 'to' and other variables are correctly defined and sanitized
         const { eid, embeddings } = await this.memory.store(msg, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, msgId, threadId });
         await this.history.add(msg, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, eid, msgId, threadId });
 
@@ -206,6 +263,7 @@ class Agent {
         this.client.send(channel, msg);
 
         // Record the message
+        // FIXME: 'to' is undefined here. It should likely be 'channel'
         const { eid, embeddings } = await this.memory.store(msg, { from: this.username, to, channel, msgId, threadId });
         await this.history.add(msg, { from: this.username, channel, isDM: false, eid, msgId, threadId });
 
@@ -223,7 +281,7 @@ class Agent {
                         type: 'channel__replies-to-request',
                         prompt: msg,
                         threadId,
-                        from,
+                        from, // TODO: 'from' is undefined here. Define or pass it appropriately.
                         channel,
                         isDM: false
                     })
@@ -233,6 +291,7 @@ class Agent {
             /*this.tree.branch(msgId, null, async (payload) => {
                 
             });*/
+            // TODO: Implement branch callback or remove if unnecessary
         }
     }
 
@@ -261,6 +320,7 @@ class Agent {
                 // Response to a thread
                 // If that's the last expected answer, that thread will continue
                 const isDone = await this.msgStatus.done(threadId, from);
+                // TODO: This duplicate call to 'done' may be unnecessary
             }
         }
     }
@@ -287,6 +347,7 @@ class Agent {
             // Response to a thread
             // If that's the last expected answer, that thread will continue
             const isDone = await this.msgStatus.done(threadId, from);
+            // TODO: Consider handling 'isDone' result if needed
         }
     }
 }
