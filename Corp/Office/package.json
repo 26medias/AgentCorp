@@ -3,9 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "glob": "^11.0.0",
+    "openai": "^4.66.1",
+    "uuid": "^10.0.0",
+    "ws": "^8.18.0"
+  }
 }

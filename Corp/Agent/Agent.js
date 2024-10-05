@@ -214,7 +214,7 @@ class Agent {
             relevantContext
         });
 
-        const response = await this.gpt.ask(system_prompt, options.prompt);
+        const response = await this.gpt.callGPT(system_prompt, options.prompt); //await this.gpt.ask(system_prompt, options.prompt);
         if (!response.next_steps && !response.actions) {
             return true;
         } else {
@@ -222,25 +222,25 @@ class Agent {
             const actionResponse = await this.executeActions(response);
             return await this.newThinkThread({
                 ...options,
-                type: 'action_response',
+                type: 'action_loop',
                 prompt: actionResponse
             })
         }
     }
 
-    async sendDM(to, msg, request_reply, threadId) {
+    async sendDM(to, message, request_reply, threadId) {
         const msgId = this.uuid();
         const msg = JSON.stringify({
             msgId,
             threadId,
-            msg,
+            msg: message,
             request_reply
         });
         this.client.DM(to, msg);
 
         // Record the message
-        const { eid, embeddings } = await this.memory.store(msg, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, msgId, threadId });
-        await this.history.add(msg, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, eid, msgId, threadId });
+        const { eid, embeddings } = await this.memory.store(message, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, msgId, threadId });
+        await this.history.add(message, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, eid, msgId, threadId });
 
         // Track the reply status
         if (request_reply && request_reply) {
@@ -252,7 +252,7 @@ class Agent {
                     //    - Get PM history
                     await this.newThinkThread({
                         type: 'DM__reply-to-request',
-                        prompt: msg,
+                        prompt: message,
                         threadId,
                         from: this.username,
                         to,
@@ -263,19 +263,19 @@ class Agent {
         }
     }
 
-    async sendChannelMessage(channel, msg, request_reply, threadId) {
+    async sendChannelMessage(channel, message, request_reply, threadId) {
         const msgId = this.uuid();
         const msg = JSON.stringify({
             msgId,
             threadId,
-            msg,
+            msg: message,
             request_reply
         });
         this.client.send(channel, msg);
 
         // Record the message
-        const { eid, embeddings } = await this.memory.store(msg, { from: this.username, channel, msgId, threadId });
-        await this.history.add(msg, { from: this.username, channel, isDM: false, eid, msgId, threadId });
+        const { eid, embeddings } = await this.memory.store(message, { from: this.username, channel, msgId, threadId });
+        await this.history.add(message, { from: this.username, channel, isDM: false, eid, msgId, threadId });
 
         // Track the reply status
         if (request_reply && request_reply.length>0) {
@@ -289,7 +289,7 @@ class Agent {
                     //    - Get the broader channel context
                     await this.newThinkThread({
                         type: 'channel__replies-to-request',
-                        prompt: msg,
+                        prompt: message,
                         threadId,
                         from: this.username,
                         channel,
@@ -357,7 +357,10 @@ class Agent {
     }
 }
 
+export default Agent;
+/*
 (async () => {
     const agent = new Agent('../workspaces/europa-discovery', 'PM')
     await agent.init();
 })()
+*/
