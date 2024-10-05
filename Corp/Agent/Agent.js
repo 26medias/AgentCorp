@@ -33,7 +33,7 @@ class Agent {
         this.gpt        = new GPTService(process.env.OPENAI_API_KEY); // GPT wrapper
         this.ops        = new WorkspaceOp(`${this.workspace_directory}/workspace`);
 
-        await this.connectToMessenger();
+        return await this.connectToMessenger();
     }
 
     async connectToMessenger(messenger_server='ws://localhost:8080') {
@@ -58,6 +58,7 @@ class Agent {
             scope.client.on('open', () => {
                 for (let i in scope.metadata.messenger_channels) {
                     scope.client.joinChannel(scope.metadata.messenger_channels[i]);
+                    console.log(`[${this.username}] JOINED ${scope.metadata.messenger_channels[i]}`)
                 }
                 resolve(true);
             });
@@ -141,7 +142,7 @@ class Agent {
                 case "sendChannelMessages":
                     for (j in action.data) {
                         const item = action.data[j]
-                        await this.sendChannelMessage(item.channel, item.message, action.request_reply, threadId);
+                        await this.sendChannelMessage(item.channel, item.message, item.request_reply, threadId);
                     }
                     output.push({
                         action: action.action,
@@ -151,7 +152,7 @@ class Agent {
                 case "sendDMs":
                     for (j in action.data) {
                         const item = action.data[j]
-                        await this.sendDM(item.to, item.message, action.request_reply, threadId);
+                        await this.sendDM(item.to, item.message, item.request_reply, threadId);
                     }
                     output.push({
                         action: action.action,
@@ -170,7 +171,7 @@ class Agent {
     }
 
     async getHistoryContext(options, limit) {
-        console.log("getHistoryContext", {options, limit})
+        //console.log("getHistoryContext", {options, limit})
         if (!options.channel || !options.to || ["startup", "instruct"].includes(options.type)) {
             return {contextPrompt: '', msgIds: []};
         }
@@ -186,30 +187,30 @@ class Agent {
         } else {
             contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/DM__context__history.txt"), {...options, messages});
         }
-        console.log({contextPrompt});
+        //console.log({contextPrompt});
         return {contextPrompt, msgIds};
     }
 
     async getRelevantContext(options, limit, excludeIds) {
-        console.log("getRelevantContext", {options, limit, excludeIds})
+        //console.log("getRelevantContext", {options, limit, excludeIds})
         if (["startup", "instruct"].includes(options.type)) {
             return {contextPrompt: '', msgIds: []};
         }
         // Find the most relevant messages accross every channels & DMs
         let history = await this.memory.match(options.prompt, limit);
-        console.log({history});
+        //console.log({history});
         // Exclude the ones within `excludeIds`
         if (excludeIds && excludeIds.length > 0) {
             history = history.filter(item => !excludeIds.contains(item.id));
         }
         const msgIds = history.map(item => item.id);
-        console.log({msgIds});
+        //console.log({msgIds});
         const messages = history.map(message => {
             return `[${message.metas.channel}][${message.metas.from}] ${message.content}`;
         }).join("\n");
-        console.log({messages});
+        //console.log({messages});
         const contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/context__relevant.txt"), {...options, messages});
-        console.log({contextPrompt});
+        //console.log({contextPrompt});
         return {contextPrompt, msgIds};
     }
 
@@ -248,18 +249,26 @@ class Agent {
         const type_prompt = this.gpt.getPrompt(this.getFile(`./prompts/${options.type}.txt`), options);
 
         const system_prompt = this.gpt.getPrompt(this.getFile("./prompts/system.txt"), {
+            project_name: this.project.project.name,
+            project_description: this.project.project.description,
+            project_specs: this.project.project.specs,
             type_prompt,
             role_prompt,
             historyContext,
             relevantContext
         });
 
+        //console.log("");
+        //console.log(`====== ${this.username} ======`);
+        //console.log(system_prompt);
+
+        const response = JSON.parse(await this.gpt.callGPT(system_prompt, options.prompt));
         console.log("");
         console.log(`====== ${this.username} ======`);
-        console.log(system_prompt);
+        console.log("GPT Response:")
+        console.log(JSON.stringify(response, null, 4))
 
-        //const response = await this.gpt.callGPT(system_prompt, options.prompt); //await this.gpt.ask(system_prompt, options.prompt);
-        const response = {
+        /*const response = {
             "actions": [{
                 "action": "sendChannelMessages",
                 "data": [
@@ -270,17 +279,19 @@ class Agent {
                 ]
             }],
             "next_steps": "wait and see"
-        }
-        if (!response.next_steps && !response.actions) {
+        }*/
+        if (!response.actions) {
+            console.log("Nothing more to do, end of loop")
             return true;
         } else {
             // has actions
+            console.log("Actions!!!")
             const actionResponse = await this.executeActions(response.actions);
-            return await this.newThinkThread({
+            /*return await this.newThinkThread({
                 ...options,
                 type: 'action_loop',
                 prompt: JSON.stringify(actionResponse, null, 4)
-            })
+            })*/
         }
     }
 
@@ -325,7 +336,7 @@ class Agent {
             msgId,
             threadId,
             msg: message,
-            request_reply
+            request_reply // Missing???
         });
         this.client.send(channel, msg);
 
@@ -358,13 +369,13 @@ class Agent {
 
     async onDM(message, from) {
         const scope = this;
-        console.log("DM:", { message, from });
         const { msgId, threadId, msg, request_reply } = this.parseMessage(message);
+        console.log("DM:", { message, from, msgId, threadId, msg, request_reply });
         // Record the message
         const { eid, embeddings } = await this.memory.store(msg, { from, to: this.username, channel: `${this.username}_${from}`, isDM: true, msgId, threadId });
         await this.history.add(msg, { from, to: this.username, channel: `${this.username}_${from}`, isDM: true, eid, msgId, threadId });
         // Need to act on it?
-        if (request_reply) {
+        if (request_reply && from!=this.username) {
             // Action requested
             await this.newThinkThread({
                 type: 'DM__reply-requested',
@@ -387,8 +398,8 @@ class Agent {
     }
 
     async onMessage(message, from, channel) {
-        console.log("Channel:", { message, from, channel });
         const { msgId, threadId, msg, request_reply } = this.parseMessage(message);
+        console.log("Channel:", { message, from, channel, msgId, threadId, msg, request_reply });
         // Record the message
         const { eid, embeddings } = await this.memory.store(msg, { from, to: this.username, channel, msgId, threadId });
         await this.history.add(msg, { from, to: this.username, channel, isDM: false, eid, msgId, threadId });

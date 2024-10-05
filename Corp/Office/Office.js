@@ -16,25 +16,45 @@ class Office {
     }
 
     async init() {
-        console.log("Init")
+        console.log("Init");
         const scope = this;
         try {
             const projectData = await this.readJson("workspace/project.json");
             console.log(projectData);
-
-            let i;
-            for (i in projectData.agents) {
-                console.log(`Creating Agent ${projectData.agents[i].username}...`)
-                scope.agents[projectData.agents[i].username] = new Agent(this.workspaceDirectory, projectData.agents[i].username);
-                await scope.agents[projectData.agents[i].username].init();
+    
+            // Initialize all agents in parallel
+            const initPromises = projectData.agents.map(agentData => {
+                console.log(`Creating Agent ${agentData.username}...`);
+                const agent = new Agent(this.workspaceDirectory, agentData.username);
+                scope.agents[agentData.username] = agent;
+                return agent.init()
+                    .then(() => ({ status: 'fulfilled', agent: agentData.username }))
+                    .catch(error => ({ status: 'rejected', agent: agentData.username, reason: error }));
+            });
+    
+            const results = await Promise.all(initPromises);
+    
+            // Handle initialization results
+            results.forEach(result => {
+                if (result.status === 'rejected') {
+                    console.error(`Failed to initialize Agent ${result.agent}:`, result.reason);
+                    // Optionally remove the failed agent or mark it as inactive
+                    delete scope.agents[result.agent];
+                }
+            });
+    
+            // Check if PM agent is available
+            if (scope.agents["PM"]) {
+                scope.agents["PM"].instruct("Let's start this project! Where do we start? Assign the first tasks.");
+            } else {
+                console.error('PM agent is not available. Cannot send instructions.');
             }
-            //scope.agents["PM"].sendChannelMessage("#general", "PM first message", null, null)
-            scope.agents["PM"].instruct("Let's start this project! Where do we start?")
         } catch (error) {
             console.error('Error creating workspace:', error);
         }
         return true;
     }
+    
 }
 
 export default Office;
