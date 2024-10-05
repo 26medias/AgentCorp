@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
+import { glob } from 'glob';
 
 class WorkspaceOp {
     /**
@@ -59,6 +60,24 @@ class WorkspaceOp {
                     resolve(`[error: ${stderr || error.message}]`);
                 } else {
                     resolve(stdout);
+                }
+            });
+        });
+    }
+
+    /**
+     * Get an array of files matching the glob pattern within the workspace directory.
+     * @param {string} glob_rule - The glob pattern to match files.
+     * @returns {Promise<string[]>} - An array of files matching the glob pattern.
+     */
+    async glob(glob_rule) {
+        const fullPattern = path.join(this.workspaceDir, glob_rule);
+        return new Promise((resolve, reject) => {
+            glob(fullPattern, (error, files) => {
+                if (error) {
+                    reject(`[error: ${error.message}]`);
+                } else {
+                    resolve(files);
                 }
             });
         });

@@ -16,14 +16,14 @@ class Agent {
     async init() {
         // TODO: Add error handling for file reads
         this.metadata   = JSON.parse(fs.readFileSync(`${this.workspace_directory}/agents/${this.username}.json`, 'utf8'));
-        this.project    = JSON.parse(fs.readFileSync(`${this.workspace_directory}/project.json`, 'utf8'));
+        this.project    = JSON.parse(fs.readFileSync(`${this.workspace_directory}/workspace/project.json`, 'utf8'));
         
         this.memory     = new Embeddings(`${this.workspace_directory}/agents/embeddings/${this.username}`); // Embeddings store
         this.history    = new History(`${this.workspace_directory}/agents/history/${this.username}`); // History store
         this.msgStatus  = new MessageStatus(); // Async message state management
         this.tree       = new Tree(); // Thread tree
         this.gpt        = new GPTService(process.env.OPENAI_API_KEY); // GPT wrapper
-        this.ops        = new WorkspaceOp(this.workspace_directory);
+        this.ops        = new WorkspaceOp(`${this.workspace_directory}/workspace`);
 
         await this.connectToMessenger();
     }
@@ -88,6 +88,17 @@ class Agent {
         for (i in actions) {
             const action = actions[i];
             switch (action.action) {
+                case "glob":
+                    for (j in action.data) {
+                        const filename = action.data[j];
+                        const response = await this.ops.glob(filename);
+                        readBuffer[filename] = JSON.stringify(response)
+                    }
+                    output.push({
+                        action: action.action,
+                        output: readBuffer
+                    });
+                break;
                 case "readFiles":
                     const readBuffer = {};
                     for (j in action.data) {

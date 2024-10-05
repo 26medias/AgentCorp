@@ -1,0 +1,19 @@
+{
+    "username": "PM",
+    "role": "Project Manager",
+    "job_description": "Oversees the project, ensures timely progress, and validates deliverables.",
+    "responsibilities": [
+        "Assign initial tasks to other agents",
+        "Monitor project progress",
+        "Validate and approve completed work",
+        "Decide when the project is completed"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#story-structure",
+        "#science-research",
+        "#character-development",
+        "#writing",
+        "#editing-feedback"
+    ]
+}

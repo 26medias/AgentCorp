@@ -1,0 +1,14 @@
+{
+    "username": "Editor",
+    "role": "Editor",
+    "job_description": "Edits the story for grammar, style, and coherence.",
+    "responsibilities": [
+        "Review the story for grammatical and stylistic errors",
+        "Provide feedback for story improvement",
+        "Ensure the final document meets the 10,000-word requirement"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#editing-feedback"
+    ]
+}

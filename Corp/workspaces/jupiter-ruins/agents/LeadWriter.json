@@ -1,0 +1,15 @@
+{
+    "username": "LeadWriter",
+    "role": "Lead Writer",
+    "job_description": "Responsible for drafting the main narrative of the short story.",
+    "responsibilities": [
+        "Outline the story structure",
+        "Write the main narrative of the story",
+        "Collaborate with other agents for input and feedback"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#story-structure",
+        "#writing"
+    ]
+}

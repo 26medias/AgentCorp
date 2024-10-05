@@ -70,6 +70,10 @@
     "threadId": "4d977bd9-8f20-4c4a-815a-dbb63ed232a2",
     "actions": [
         {
+            "action": "glob",
+            "data": ["*.md", "specs/**/*"]
+        },
+        {
             "action": "writeFiles",
             "data": [
                 {
@@ -123,6 +127,13 @@
 ```
 {
     "action_outputs": [
+        {
+            "action": "writeFiles",
+            "output": {
+                "*.md": "[\"project.md\", \"specs/specs.md\"]",
+                "specs/**/*": "[\"specs/specs.md\", \"specs/project.md\", \"specs/test/test.txt\"]"
+            }
+        },
         {
             "action": "writeFiles",
             "output": {

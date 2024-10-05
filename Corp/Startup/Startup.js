@@ -37,22 +37,24 @@ class Startup {
             // Define paths
             const projectName = projectData.project.name;
             const projectDir = path.join(this.workspaceDirectory, projectName);
+            const workspaceDir = path.join(projectDir, 'workspace');
             const agentsDir = path.join(projectDir, 'agents');
 
             // Create necessary directories
             await this.createDirectory(projectDir);
+            await this.createDirectory(workspaceDir);
             await this.createDirectory(agentsDir);
 
             // Save project.json
-            const projectJsonPath = path.join(projectDir, 'project.json');
+            const projectJsonPath = path.join(workspaceDir, 'project.json');
             await this.saveFile(projectJsonPath, JSON.stringify(projectData, null, 4));
 
             // Save specs.md
-            const specsMdPath = path.join(projectDir, 'specs.md');
+            const specsMdPath = path.join(workspaceDir, 'specs.md');
             await this.saveFile(specsMdPath, projectData.project.specs);
 
             // Save messenger.json
-            const messengerJsonPath = path.join(projectDir, 'messenger.json');
+            const messengerJsonPath = path.join(workspaceDir, 'messenger.json');
             await this.saveFile(messengerJsonPath, JSON.stringify(projectData.messenger, null, 4));
 
             // Save individual agent files

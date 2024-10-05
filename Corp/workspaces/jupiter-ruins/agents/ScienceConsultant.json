@@ -1,0 +1,15 @@
+{
+    "username": "ScienceConsultant",
+    "role": "Science Consultant",
+    "job_description": "Ensures scientific accuracy within the story.",
+    "responsibilities": [
+        "Research scientific concepts related to Jupiter and its moons",
+        "Provide scientific insights and suggestions",
+        "Review the story for scientific accuracy"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#science-research",
+        "#writing"
+    ]
+}
