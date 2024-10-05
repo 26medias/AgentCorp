@@ -82,35 +82,6 @@ class Agent {
     }
 
 
-    async getHistoryContext(options, limit) {
-        // Get the channel history
-        const history = await this.history.get({channel: options.channel}, limit);
-        const messages = history.map(message => {
-            return `[${message.metadata.from}] ${message.content}`;
-        }).join("\n");
-        const msgIds = history.map(item => item.id);
-        let contextPrompt;
-        if (!options.isDM) {
-            contextPrompt = this.gpt.getPrompt("./prompts/channel__context__history.txt", {...options, messages});
-        } else {
-            contextPrompt = this.gpt.getPrompt("./prompts/DM__context__history.txt", {...options, messages});
-        }
-        return {contextPrompt, msgIds};
-    }
-
-    async getRelevantContext(options, limit, excludeIds) {
-        // Find the most relevant messages accross every channels & DMs
-        let history = await this.memory.match(options.prompt, limit);
-        // Exclude the ones within `excludeIds`
-        history = history.filter(item => !excludeIds.contains(item.id));
-        const msgIds = history.map(item => item.id);
-        messages = history.map(message => {
-            return `[${message.metas.channel}][${message.metas.from}] ${message.content}`;
-        }).join("\n");
-        const contextPrompt = this.gpt.getPrompt("./prompts/context__relevant.txt", {...options, messages});
-        return {contextPrompt, msgIds};
-    }
-
     async executeActions(actions, threadId=null) {
         let i, j;
         let output = [];
@@ -177,6 +148,35 @@ class Agent {
             }
         }
         return output;
+    }
+
+    async getHistoryContext(options, limit) {
+        // Get the channel history
+        const history = await this.history.get({channel: options.channel}, limit);
+        const messages = history.map(message => {
+            return `[${message.metadata.from}] ${message.content}`;
+        }).join("\n");
+        const msgIds = history.map(item => item.id);
+        let contextPrompt;
+        if (!options.isDM) {
+            contextPrompt = this.gpt.getPrompt("./prompts/channel__context__history.txt", {...options, messages});
+        } else {
+            contextPrompt = this.gpt.getPrompt("./prompts/DM__context__history.txt", {...options, messages});
+        }
+        return {contextPrompt, msgIds};
+    }
+
+    async getRelevantContext(options, limit, excludeIds) {
+        // Find the most relevant messages accross every channels & DMs
+        let history = await this.memory.match(options.prompt, limit);
+        // Exclude the ones within `excludeIds`
+        history = history.filter(item => !excludeIds.contains(item.id));
+        const msgIds = history.map(item => item.id);
+        messages = history.map(message => {
+            return `[${message.metas.channel}][${message.metas.from}] ${message.content}`;
+        }).join("\n");
+        const contextPrompt = this.gpt.getPrompt("./prompts/context__relevant.txt", {...options, messages});
+        return {contextPrompt, msgIds};
     }
 
     async newThinkThread(options) {
