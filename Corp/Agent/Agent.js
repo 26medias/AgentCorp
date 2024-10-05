@@ -83,12 +83,12 @@ class Agent {
 
 
     async getHistoryContext(options, limit) {
+        // Get the channel history
         const history = await this.history.get({channel: options.channel}, limit);
         const messages = history.map(message => {
             return `[${message.metadata.from}] ${message.content}`;
         }).join("\n");
-        // FIXME: 'messages' is a string here; 'messages.map' will cause an error
-        const msgIds = messages.map(item => item.id);
+        const msgIds = history.map(item => item.id);
         let contextPrompt;
         if (!options.isDM) {
             contextPrompt = this.gpt.getPrompt("./prompts/channel__context__history.txt", {...options, messages});
@@ -99,12 +99,13 @@ class Agent {
     }
 
     async getRelevantContext(options, limit, excludeIds) {
-        const history = await this.memory.match(options.prompt, limit);
-        // FIXME: 'messages' is not defined before this line
-        const msgIds = messages.map(item => item.id).filter(id => !excludeIds.contains(id));
-        let messages = await this.history.getById(msgIds)
+        // Find the most relevant messages accross every channels & DMs
+        let history = await this.memory.match(options.prompt, limit);
+        // Exclude the ones within `excludeIds`
+        history = history.filter(item => !excludeIds.contains(item.id));
+        const msgIds = history.map(item => item.id);
         messages = history.map(message => {
-            return `[${message.metadata.channel}][${message.metadata.from}] ${message.content}`;
+            return `[${message.metas.channel}][${message.metas.from}] ${message.content}`;
         }).join("\n");
         const contextPrompt = this.gpt.getPrompt("./prompts/context__relevant.txt", {...options, messages});
         return {contextPrompt, msgIds};
@@ -120,7 +121,6 @@ class Agent {
                     const readBuffer = {};
                     for (j in action.data) {
                         const filename = action.data[j];
-                        // TODO: Add error handling for file read operations
                         const response = await this.ops.readFile(filename);
                         readBuffer[filename] = response;
                     }
@@ -133,9 +133,8 @@ class Agent {
                     const writeBuffer = {};
                     for (j in action.data) {
                         const item = action.data[j];
-                        // FIXME: 'filename' is undefined; should use 'item.filename'
                         const response = await this.ops.writeFile(item.filename, item.content);
-                        writeBuffer[filename] = response;
+                        writeBuffer[item.filename] = response;
                     }
                     output.push({
                         action: action.action,
@@ -143,7 +142,6 @@ class Agent {
                     });
                 break;
                 case "runShellCommand":
-                    // FIXME: Executing shell commands can be a security risk
                     const response = await this.ops.runShellCommand(action.data.command);
                     output.push({
                         action: action.action,
@@ -170,7 +168,12 @@ class Agent {
                         output: true
                     });
                 break;
-                // TODO: Handle unknown actions or add a default case
+                default:
+                    output.push({
+                        action: action.action,
+                        output: "Unknown action"
+                    });
+                break;
             }
         }
         return output;
@@ -192,7 +195,6 @@ class Agent {
         const {historyContext, historyContextMsgIds} = await this.getHistoryContext(options, 25);
         const {relevantContext, relevantContextMsgIds} = await this.getRelevantContext(options, 25, historyContextMsgIds);
 
-        // TODO: Ensure prompt files exist and handle missing files
         const role_prompt = this.gpt.getPrompt(`./prompts/${options.type}.txt`, {});
 
         const system_prompt = this.gpt.getPrompt("./prompts/system.txt", {
@@ -201,13 +203,12 @@ class Agent {
             relevantContext
         });
 
-        // TODO: Add error handling for GPT service interactions
         const response = await this.gpt.ask(system_prompt, options.prompt);
         if (!response.next_steps && !response.actions) {
             return true;
         } else {
             // has actions
-            const actionResponse = await this.executeActions(response); // @todo
+            const actionResponse = await this.executeActions(response);
             return await this.newThinkThread({
                 ...options,
                 type: 'action_response',
@@ -227,7 +228,6 @@ class Agent {
         this.client.DM(to, msg);
 
         // Record the message
-        // FIXME: Ensure 'to' and other variables are correctly defined and sanitized
         const { eid, embeddings } = await this.memory.store(msg, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, msgId, threadId });
         await this.history.add(msg, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, eid, msgId, threadId });
 
@@ -263,8 +263,7 @@ class Agent {
         this.client.send(channel, msg);
 
         // Record the message
-        // FIXME: 'to' is undefined here. It should likely be 'channel'
-        const { eid, embeddings } = await this.memory.store(msg, { from: this.username, to, channel, msgId, threadId });
+        const { eid, embeddings } = await this.memory.store(msg, { from: this.username, channel, msgId, threadId });
         await this.history.add(msg, { from: this.username, channel, isDM: false, eid, msgId, threadId });
 
         // Track the reply status
@@ -281,17 +280,12 @@ class Agent {
                         type: 'channel__replies-to-request',
                         prompt: msg,
                         threadId,
-                        from, // TODO: 'from' is undefined here. Define or pass it appropriately.
+                        from: this.username,
                         channel,
                         isDM: false
                     })
                 }
             });
-            // Create a branch callback
-            /*this.tree.branch(msgId, null, async (payload) => {
-                
-            });*/
-            // TODO: Implement branch callback or remove if unnecessary
         }
     }
 
