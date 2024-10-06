@@ -2,7 +2,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  serverName: 'test_server',
+  serverName: 'jupiter-ruins',
 };
 
 const serverSlice = createSlice({

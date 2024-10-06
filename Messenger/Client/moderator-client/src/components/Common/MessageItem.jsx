@@ -2,6 +2,8 @@
 import React from 'react';
 import { Card } from 'antd';
 import moment from 'moment';
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useSelector } from 'react-redux';
 
 const MessageItem = ({ message }) => {
@@ -12,6 +14,7 @@ const MessageItem = ({ message }) => {
     }, {});
 
     const { from, message: content, timestamp } = message;
+    const msg = JSON.parse(content);
     const color = userColorMap[from] || '#000';
 
     return (
@@ -22,7 +25,7 @@ const MessageItem = ({ message }) => {
             title={from}
             extra={moment(timestamp).format('YYYY-MM-DD HH:mm:ss')}
         >
-            <p>{content}</p>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.msg}</ReactMarkdown>
         </Card>
     );
 };

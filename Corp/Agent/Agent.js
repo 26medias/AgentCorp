@@ -21,6 +21,10 @@ class Agent {
         return path.resolve(__dirname, relativePath);
     }
 
+    log(...args) {
+        console.log(`[${this.username}]`, ...args);
+    }
+
     async init() {
         // TODO: Add error handling for file reads
         this.metadata   = JSON.parse(fs.readFileSync(`${this.workspace_directory}/agents/${this.username}.json`, 'utf8'));
@@ -50,7 +54,7 @@ class Agent {
         });
 
         this.client.on('close', () => {
-            console.log('Connection closed');
+            scope.log('Connection closed');
             // TODO: Implement reconnection logic if necessary
         });
 
@@ -58,7 +62,7 @@ class Agent {
             scope.client.on('open', () => {
                 for (let i in scope.metadata.messenger_channels) {
                     scope.client.joinChannel(scope.metadata.messenger_channels[i]);
-                    console.log(`[${this.username}] JOINED ${scope.metadata.messenger_channels[i]}`)
+                    this.log(`[${this.username}] JOINED ${scope.metadata.messenger_channels[i]}`)
                 }
                 resolve(true);
             });
@@ -171,8 +175,8 @@ class Agent {
     }
 
     async getHistoryContext(options, limit) {
-        //console.log("getHistoryContext", {options, limit})
-        if (!options.channel || !options.to || ["startup", "instruct"].includes(options.type)) {
+        //this.log("getHistoryContext", {options, limit})
+        if ((!options.channel && !options.to) || ["startup", "instruct"].includes(options.type)) {
             return {contextPrompt: '', msgIds: []};
         }
         // Get the channel history
@@ -187,30 +191,30 @@ class Agent {
         } else {
             contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/DM__context__history.txt"), {...options, messages});
         }
-        //console.log({contextPrompt});
+        //this.log({contextPrompt});
         return {contextPrompt, msgIds};
     }
 
     async getRelevantContext(options, limit, excludeIds) {
-        //console.log("getRelevantContext", {options, limit, excludeIds})
+        //this.log("getRelevantContext", {options, limit, excludeIds})
         if (["startup", "instruct"].includes(options.type)) {
             return {contextPrompt: '', msgIds: []};
         }
         // Find the most relevant messages accross every channels & DMs
         let history = await this.memory.match(options.prompt, limit);
-        //console.log({history});
+        //this.log({history});
         // Exclude the ones within `excludeIds`
         if (excludeIds && excludeIds.length > 0) {
-            history = history.filter(item => !excludeIds.contains(item.id));
+            history = history.filter(item => !excludeIds.includes(item.id));
         }
         const msgIds = history.map(item => item.id);
-        //console.log({msgIds});
+        //this.log({msgIds});
         const messages = history.map(message => {
             return `[${message.metas.channel}][${message.metas.from}] ${message.content}`;
         }).join("\n");
-        //console.log({messages});
+        //this.log({messages});
         const contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/context__relevant.txt"), {...options, messages});
-        //console.log({contextPrompt});
+        //this.log({contextPrompt});
         return {contextPrompt, msgIds};
     }
 
@@ -226,18 +230,16 @@ class Agent {
             isDM: null,
             ...options
         };
-
-        console.log("");
-        console.log(`====== ${this.username} ======`);
-        console.log("newThinkThread", options)
+        this.log("newThinkThread", options)
 
         // Fetch the context
         const {contextPrompt: historyContext, msgIds: historyContextMsgIds} = await this.getHistoryContext(options, 25);
         const {contextPrompt: relevantContext, msgIds: relevantContextMsgIds} = await this.getRelevantContext(options, 25, historyContextMsgIds);
 
-        console.log({historyContext});
-        console.log({relevantContext});
+        this.log({historyContext});
+        this.log({relevantContext});
 
+        // Assemble the prompts
         const role_prompt = this.gpt.getPrompt(this.getFile(`./prompts/role.txt`), {
             username: this.metadata.username,
             role: this.metadata.role,
@@ -258,35 +260,18 @@ class Agent {
             relevantContext
         });
 
-        //console.log("");
-        //console.log(`====== ${this.username} ======`);
-        //console.log(system_prompt);
-
+        // Ask GPT
         const response = JSON.parse(await this.gpt.callGPT(system_prompt, options.prompt));
-        console.log("");
-        console.log(`====== ${this.username} ======`);
-        console.log("GPT Response:")
-        console.log(JSON.stringify(response, null, 4))
+        this.log("GPT Response:", JSON.stringify(response, null, 4))
 
-        /*const response = {
-            "actions": [{
-                "action": "sendChannelMessages",
-                "data": [
-                    {
-                        "channel": "#general",
-                        "message": `Hello world from ${this.username}!`
-                    }
-                ]
-            }],
-            "next_steps": "wait and see"
-        }*/
+        // Handle response
         if (!response.actions) {
-            console.log("Nothing more to do, end of loop")
+            this.log("[Nothing more to do, end of loop]")
             return true;
         } else {
             // has actions
-            console.log("Actions!!!")
-            const actionResponse = await this.executeActions(response.actions);
+            this.log("[Executing actions]")
+            const actionResponse = await this.executeActions(response.actions, options.threadId);
             /*return await this.newThinkThread({
                 ...options,
                 type: 'action_loop',
@@ -306,8 +291,8 @@ class Agent {
         this.client.DM(to, msg);
 
         // Record the message
-        const { eid, embeddings } = await this.memory.store(message, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, msgId, threadId });
-        await this.history.add(message, { from: this.username, to, channel: `${this.username}_${to}`, isDM: true, eid, msgId, threadId });
+        const { eid, embeddings } = await this.memory.store(message, { from: this.username, to, channel: `DM:${this.username}/${to}`, isDM: true, msgId, threadId });
+        await this.history.add(message, { from: this.username, to, channel: `DM:${this.username}/${to}`, isDM: true, eid, msgId, threadId });
 
         // Track the reply status
         if (request_reply && request_reply) {
@@ -319,7 +304,7 @@ class Agent {
                     //    - Get PM history
                     await this.newThinkThread({
                         type: 'DM__reply-to-request',
-                        prompt: message,
+                        prompt: 'Using the context provided, take the appropriate actions.',
                         threadId,
                         from: this.username,
                         to,
@@ -356,7 +341,7 @@ class Agent {
                     //    - Get the broader channel context
                     await this.newThinkThread({
                         type: 'channel__replies-to-request',
-                        prompt: message,
+                        prompt: 'Using the context provided, take the appropriate actions.',
                         threadId,
                         from: this.username,
                         channel,
@@ -370,7 +355,7 @@ class Agent {
     async onDM(message, from) {
         const scope = this;
         const { msgId, threadId, msg, request_reply } = this.parseMessage(message);
-        console.log("DM:", { message, from, msgId, threadId, msg, request_reply });
+        this.log("DM:", { message, from, msgId, threadId, msg, request_reply });
         // Record the message
         const { eid, embeddings } = await this.memory.store(msg, { from, to: this.username, channel: `${this.username}_${from}`, isDM: true, msgId, threadId });
         await this.history.add(msg, { from, to: this.username, channel: `${this.username}_${from}`, isDM: true, eid, msgId, threadId });
@@ -379,7 +364,9 @@ class Agent {
             // Action requested
             await this.newThinkThread({
                 type: 'DM__reply-requested',
-                prompt: { msgId, threadId, msg, request_reply },
+                //prompt: { msgId, threadId, msg, request_reply },
+                threadId: msgId,
+                prompt: msg,
                 from,
                 isDM: true
             })
@@ -399,7 +386,7 @@ class Agent {
 
     async onMessage(message, from, channel) {
         const { msgId, threadId, msg, request_reply } = this.parseMessage(message);
-        console.log("Channel:", { message, from, channel, msgId, threadId, msg, request_reply });
+        this.log("Channel:", { message, from, channel, msgId, threadId, msg, request_reply });
         // Record the message
         const { eid, embeddings } = await this.memory.store(msg, { from, to: this.username, channel, msgId, threadId });
         await this.history.add(msg, { from, to: this.username, channel, isDM: false, eid, msgId, threadId });
@@ -408,7 +395,9 @@ class Agent {
             // Action requested
             await this.newThinkThread({
                 type: 'channel__reply-requested',
-                prompt: { msgId, threadId, msg, request_reply },
+                //prompt: { msgId, threadId, msg, request_reply },
+                threadId: msgId,
+                prompt: msg,
                 from,
                 channel,
                 isDM: false
