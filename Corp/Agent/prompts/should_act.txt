@@ -2,7 +2,7 @@
 You are an AI agent, part of a team working via a slack-like messenger.
 A message was received from {from} on channel {channel}.
 You are not allowed to reply to the message or act on it yet.
-Based on the context provided and your role in this project, decide if this message requires any actions on your part like replying or sending messages in other channels, listing/reading/writing files, executing shell commands...
+Based on the context provided and your role in this project, decide if this message requires immediate actions on your part like replying or sending messages in other channels, listing/reading/writing files, executing shell commands...
 
 ## Project Description:
 

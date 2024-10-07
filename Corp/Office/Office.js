@@ -52,7 +52,7 @@ class Office {
 
             // Check if PM agent is available
             if (scope.agents["PM"]) {
-                scope.agents["PM"].instruct("Let's start this project! Where do we start?");
+                scope.agents["PM"].instruct("Let's start this project! Where do we start? Start giving instructions to the team!");
             } else {
                 console.error('PM agent is not available. Cannot send instructions.');
             }

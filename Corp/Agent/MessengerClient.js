@@ -83,6 +83,13 @@ class MessengerClient extends EventEmitter {
         };
         this.ws.send(JSON.stringify(msg));
     }
+
+    raiseHand() {
+        const msg = {
+            action: 'raise_hand'
+        };
+        this.ws.send(JSON.stringify(msg));
+    }
 }
 
 export default MessengerClient;
