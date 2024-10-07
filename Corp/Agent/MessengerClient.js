@@ -69,7 +69,7 @@ class MessengerClient extends EventEmitter {
 
     send(channel, message) {
         const msg = {
-            action: 'send_channel',
+            action: 'send_message',
             channel: channel,
             message: message
         };

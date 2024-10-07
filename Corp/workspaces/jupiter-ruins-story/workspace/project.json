@@ -1,0 +1,98 @@
+{
+    "project": {
+        "name": "jupiter-ruins-story",
+        "description": "A collaborative project to write a 10,000 word hard sci-fi short story about the discovery of alien ruins on one of Jupiter's moons.",
+        "specs": "### Project Specifications\n\n**Objective:**\nWrite a 10,000 word hard sci-fi short story centered on the discovery of alien ruins on one of Jupiter's moons.\n\n**Requirements:**\n- The story must be scientifically plausible, incorporating accurate scientific principles and theories.\n- It should feature well-developed characters and a compelling narrative arc.\n- The setting should be vividly described to create an immersive experience.\n- Include thought-provoking themes related to space exploration and first contact.\n\n**Structure:**\n1. **Outline Creation**\n   - Develop a detailed plot outline.\n   - Define main characters and their arcs.\n   - Outline key scientific elements and how they integrate into the story.\n\n2. **Draft Writing**\n   - Write the initial draft following the outline.\n   - Ensure scientific accuracy and narrative flow.\n\n3. **Review and Edit**\n   - Conduct peer reviews for feedback.\n   - Revise for clarity, coherence, and engagement.\n   - Proofread for grammatical and typographical errors.\n\n4. **Finalization**\n   - Compile the final version of the story.\n   - Ensure all project goals and specifications are met."
+    },
+    "messenger": {
+        "channels": [
+            "#general",
+            "#plot-development",
+            "#scientific-consultation",
+            "#draft-writing",
+            "#editing",
+            "#final-review"
+        ]
+    },
+    "agents": [
+        {
+            "username": "PM",
+            "role": "Project Manager",
+            "job_description": "Oversees the project, assigns tasks, validates work, and ensures the project's completion.",
+            "responsibilities": [
+                "Assign initial tasks to team members",
+                "Validate work being done",
+                "Decide when the project is completed"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#plot-development",
+                "#scientific-consultation",
+                "#draft-writing",
+                "#editing",
+                "#final-review"
+            ]
+        },
+        {
+            "username": "LeadWriter",
+            "role": "Lead Writer",
+            "job_description": "Responsible for creating the main narrative and ensuring the story is engaging and coherent.",
+            "responsibilities": [
+                "Develop the story outline and main narrative",
+                "Write key sections of the draft",
+                "Incorporate feedback into revisions"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#plot-development",
+                "#draft-writing",
+                "#editing"
+            ]
+        },
+        {
+            "username": "ScienceConsultant",
+            "role": "Science Consultant",
+            "job_description": "Ensures scientific accuracy and plausibility in the story.",
+            "responsibilities": [
+                "Review scientific elements of the plot",
+                "Provide input on realistic scientific scenarios",
+                "Verify accuracy of scientific references"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#scientific-consultation",
+                "#plot-development"
+            ]
+        },
+        {
+            "username": "CharacterDev",
+            "role": "Character Developer",
+            "job_description": "Focuses on creating and developing compelling characters.",
+            "responsibilities": [
+                "Develop character profiles and arcs",
+                "Ensure character consistency and growth",
+                "Contribute to dialogue and character interactions"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#plot-development",
+                "#draft-writing"
+            ]
+        },
+        {
+            "username": "Editor",
+            "role": "Editor",
+            "job_description": "Responsible for reviewing and editing the draft for clarity, coherence, and quality.",
+            "responsibilities": [
+                "Conduct peer reviews and provide feedback",
+                "Edit the draft for grammatical and typographical errors",
+                "Ensure narrative flow and engagement"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#editing",
+                "#final-review"
+            ]
+        }
+    ]
+}

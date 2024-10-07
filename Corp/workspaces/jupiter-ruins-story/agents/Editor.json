@@ -1,0 +1,15 @@
+{
+    "username": "Editor",
+    "role": "Editor",
+    "job_description": "Responsible for reviewing and editing the draft for clarity, coherence, and quality.",
+    "responsibilities": [
+        "Conduct peer reviews and provide feedback",
+        "Edit the draft for grammatical and typographical errors",
+        "Ensure narrative flow and engagement"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#editing",
+        "#final-review"
+    ]
+}

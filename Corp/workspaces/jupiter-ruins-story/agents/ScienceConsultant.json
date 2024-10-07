@@ -1,0 +1,15 @@
+{
+    "username": "ScienceConsultant",
+    "role": "Science Consultant",
+    "job_description": "Ensures scientific accuracy and plausibility in the story.",
+    "responsibilities": [
+        "Review scientific elements of the plot",
+        "Provide input on realistic scientific scenarios",
+        "Verify accuracy of scientific references"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#scientific-consultation",
+        "#plot-development"
+    ]
+}

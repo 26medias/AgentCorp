@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import Agent from '../Agent/Agent.js';
+import MessagingServer from './Messenger.js';
 
 class Office {
     constructor(workspaceDirectory) {
@@ -25,13 +26,14 @@ class Office {
         console.log("Init");
         const scope = this;
         try {
+            this.messenger = new MessagingServer(8080, `${this.workspaceDirectory}/db`, true);
             const projectData = await this.readJson("workspace/project.json");
             console.log(projectData);
 
             // Initialize all agents in parallel using Promise.allSettled for better error handling
             const initPromises = projectData.agents.map(agentData => {
                 console.log(`Creating Agent ${agentData.username}...`);
-                const agent = new Agent(this.workspaceDirectory, agentData.username);
+                const agent = new Agent(this.workspaceDirectory, agentData.username, this.messenger);
                 scope.agents[agentData.username] = agent;
                 return agent.init();
             });
@@ -50,7 +52,7 @@ class Office {
 
             // Check if PM agent is available
             if (scope.agents["PM"]) {
-                scope.agents["PM"].instruct("Let's start this project! Where do we start? Assign the first tasks.");
+                scope.agents["PM"].instruct("Let's start this project! Where do we start?");
             } else {
                 console.error('PM agent is not available. Cannot send instructions.');
             }
@@ -61,18 +63,11 @@ class Office {
     }
 
     async reset() {
-        /*
-            Delete:
-                - {this.workspaceDirectory}/agents/embeddings
-                - {this.workspaceDirectory}/agents/history
-                - {this.workspaceDirectory}/../../Messenger/Server/logs
-        */
         try {
             // Define paths to delete
             const pathsToDelete = [
                 path.resolve(this.workspaceDirectory, 'agents/embeddings'),
-                path.resolve(this.workspaceDirectory, 'agents/history'),
-                path.resolve(this.workspaceDirectory, '../../Messenger/Server/logs'),
+                path.resolve(`./logs`)
             ];
 
             // Delete each directory
@@ -103,10 +98,3 @@ class Office {
 }
 
 export default Office;
-
-// Main execution
-(async () => {
-    const office = new Office('../workspaces/jupiter-ruins');
-    await office.reset();
-    await office.init();
-})();

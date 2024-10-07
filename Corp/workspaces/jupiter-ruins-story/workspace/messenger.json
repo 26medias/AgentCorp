@@ -1,0 +1,10 @@
+{
+    "channels": [
+        "#general",
+        "#plot-development",
+        "#scientific-consultation",
+        "#draft-writing",
+        "#editing",
+        "#final-review"
+    ]
+}

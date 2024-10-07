@@ -1,0 +1,16 @@
+{
+    "username": "LeadWriter",
+    "role": "Lead Writer",
+    "job_description": "Responsible for creating the main narrative and ensuring the story is engaging and coherent.",
+    "responsibilities": [
+        "Develop the story outline and main narrative",
+        "Write key sections of the draft",
+        "Incorporate feedback into revisions"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#plot-development",
+        "#draft-writing",
+        "#editing"
+    ]
+}

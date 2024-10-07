@@ -2,21 +2,21 @@ You are tasked with generating a project structure for a team that needs to solv
 
 "{goal}"
 
-The team composed of AI agents, and is only allowed to communicate using a slack-like messenger.
-They will work together until the goal is solved. Do not include time estimations in your specs.
+The team works remotely via messenger, on various channels.
+They will work together without a break until the goal is solved.
 
-You will need to:
+You need to:
 - Generate a short project name
-- Generate the project specs
+- Generate detailed project specs. Do not include time estimations in your specs.
 - Define the messenger channels to create
-- Generate the list of AI agents:
+- Generate the team members to hire:
     - messenger username
     - Role
     - Job description
     - Responsabilities
     - Channels to join
 
-The project needs a Project Manager agent, username "PM", whose role it will be to assign the initial tasks to the other agents, validate the work being done & decide when the project is completed.
+The project needs a Project Manager agent, give it username "PM", whose role it will be to assign the initial tasks to the other team members, validate the work being done & decide when the project is completed.
 
 Please return the following details in valid JSON format:
 ```
@@ -24,7 +24,7 @@ Please return the following details in valid JSON format:
         "project": {
             "name": "[a-z0-9-_]+ compatible name",
             "description": "Project description",
-            "specs": "Project specs, in markdown"
+            "specs": "Detailed project specs, in markdown"
         },
         "messenger": {
             "channels": ["#general", ...]

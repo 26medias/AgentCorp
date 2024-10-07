@@ -25,8 +25,9 @@ You are operating on a loop, operating carefully, step by step:
 
 
 # Project Specs:
-
+----------- (begin: project-specs)
 {project_specs}
+----------- (end: project-specs)
 
 {role_prompt}
 

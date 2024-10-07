@@ -1,0 +1,18 @@
+{
+    "username": "PM",
+    "role": "Project Manager",
+    "job_description": "Oversees the project, assigns tasks, validates work, and ensures the project's completion.",
+    "responsibilities": [
+        "Assign initial tasks to team members",
+        "Validate work being done",
+        "Decide when the project is completed"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#plot-development",
+        "#scientific-consultation",
+        "#draft-writing",
+        "#editing",
+        "#final-review"
+    ]
+}
