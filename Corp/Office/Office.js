@@ -26,7 +26,7 @@ class Office {
         console.log("Init");
         const scope = this;
         try {
-            this.messenger = new MessagingServer(8080, `${this.workspaceDirectory}/db`, true);
+            this.messenger = new MessagingServer(8080, `${this.workspaceDirectory}/db`, false);
             const projectData = await this.readJson("workspace/project.json");
             console.log(projectData);
 
@@ -52,7 +52,7 @@ class Office {
 
             // Check if PM agent is available
             if (scope.agents["PM"]) {
-                scope.agents["PM"].instruct("Let's start this project! Where do we start? Start giving instructions to the team!");
+                scope.agents["PM"].instruct("Using the project specs, assign the first tasks to your team on the relevant channels. Do not plan to assign tasks, give your team something to do right now.");
             } else {
                 console.error('PM agent is not available. Cannot send instructions.');
             }

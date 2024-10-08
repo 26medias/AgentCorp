@@ -1,0 +1,14 @@
+{
+    "username": "editor",
+    "role": "Editor",
+    "job_description": "Refines and edits the story for clarity and coherence.",
+    "responsibilities": [
+        "Edit drafts for grammar and style",
+        "Ensure narrative coherence",
+        "Prepare the manuscript for final review"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#editing"
+    ]
+}

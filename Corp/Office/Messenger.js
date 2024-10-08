@@ -15,7 +15,7 @@ class MessagingServer {
         this.channels = {}; // Map of channel name to array of usernames
         this.config = { users: {}, channels: {} };
         this.loggingEnabled = loggingEnabled;
-        this.handQueue = []; // Queue for hand-raising
+        this.handQueue = []; // Queue for hand-raising, now stores objects { username, data }
         this.activeUser = null; // Currently active user
 
         // Initialize DatabaseManager
@@ -56,7 +56,7 @@ class MessagingServer {
                 await this.joinChannel(ws, data.channel);
                 break;
             case 'raise_hand':
-                this.handleRaiseHand(ws);
+                await this.handleRaiseHand(ws, data.data); // Pass the 'data' field
                 break;
             case 'send_message':
                 await this.handleSendMessage(ws, data.message, data.channel);
@@ -91,32 +91,34 @@ class MessagingServer {
         }
     }
 
-    handleRaiseHand(ws) {
+    async handleRaiseHand(ws, handData) { // Updated to accept 'data'
         const username = this.getUsernameBySocket(ws);
         if (!username) {
             ws.send(JSON.stringify({ error: "User not registered" }));
             return;
         }
 
-        if (this.handQueue.includes(username) || this.activeUser === username) {
+        if (this.handQueue.find(entry => entry.username === username) || this.activeUser === username) {
             ws.send(JSON.stringify({ status: "already_in_queue_or_active" }));
             return;
         }
 
-        this.handQueue.push(username);
-        this.log(`User ${username} raised hand. Queue: ${this.handQueue.join(', ')}`);
+        // Store both username and the associated data
+        this.handQueue.push({ username, data: handData });
+        this.log(`User ${username} raised hand with data: "${handData}". Queue length: ${this.handQueue.length}`);
 
         // If no active user, grant turn immediately
         if (!this.activeUser) {
             this.grantTurn();
         } else {
-            ws.send(JSON.stringify({ status: "queued", position: this.handQueue.length }));
+            const position = this.handQueue.length;
+            ws.send(JSON.stringify({ status: "queued", position }));
         }
     }
 
     async handleSendMessage(ws, msg, channel) {
         const username = this.getUsernameBySocket(ws);
-        console.log(`[server] [ch:${channel}][u:${username}] ${msg}`)
+        //console.log(`[server] [ch:${channel}][u:${username}] ${msg}`)
         if (!username) {
             console.log({ error: "User not registered" })
             ws.send(JSON.stringify({ error: "User not registered" }));
@@ -142,16 +144,16 @@ class MessagingServer {
             if (channel && msg) {
                 await this.dbManager.addChannel(channel); // Ensure channel exists
                 messageId = await this.dbManager.logChannelMessage(channel, username, msg, timestamp);
-                this.sendChannelMessage(ws, channel, JSON.stringify({msg, msgId: messageId}));
+                this.sendChannelMessage(ws, channel, JSON.stringify({ msg, msgId: messageId }));
             } else if (msg.recipient && msg) { // buggy
                 messageId = await this.dbManager.logDirectMessage(username, msg.recipient, msg, timestamp);
-                await this.sendDirectMessage(ws, username, msg.recipient, JSON.stringify({msg, msgId: messageId}), messageId, timestamp);
+                await this.sendDirectMessage(ws, username, msg.recipient, JSON.stringify({ msg, msgId: messageId }), messageId, timestamp);
             } else {
                 ws.send(JSON.stringify({ error: "Invalid message format" }));
                 return;
             }
 
-            console.log(`[${messageId}][${username}][${channel}] ${msg}`);
+            //console.log(`[${messageId}][${username}][${channel}] ${msg}`);
 
             // After sending the message, grant turn to the next user in the queue
             this.grantTurn();
@@ -183,10 +185,10 @@ class MessagingServer {
     }
 
     sendChannelMessage(ws, channelName, msg) {
-        console.log(`[sendChannelMessage]`, {channelName, msg})
+        //console.log(`[sendChannelMessage]`, {channelName, msg})
         if (this.channels[channelName]) {
             this.channels[channelName].forEach(user => {
-                console.log(">>", user)
+                //console.log(">>", user)
                 const client = this.clients[user];
                 if (client && client !== ws) {
                     client.send(JSON.stringify({ action: 'channel_message', channel: channelName, from: this.getUsernameBySocket(ws), message: msg }));
@@ -360,7 +362,7 @@ class MessagingServer {
                 this.channels[channel] = this.channels[channel].filter(user => user !== username);
             }
             // Remove user from handQueue if present
-            const queueIndex = this.handQueue.indexOf(username);
+            const queueIndex = this.handQueue.findIndex(entry => entry.username === username);
             if (queueIndex !== -1) {
                 this.handQueue.splice(queueIndex, 1);
                 this.log(`User ${username} removed from hand-raising queue.`);
@@ -383,13 +385,16 @@ class MessagingServer {
             return;
         }
 
-        const nextUser = this.handQueue.shift();
+        const nextEntry = this.handQueue.shift(); // Get the next { username, data } object
+        const nextUser = nextEntry.username;
+        const handData = nextEntry.data;
+
         this.activeUser = nextUser;
 
         const nextSocket = this.clients[nextUser];
         if (nextSocket) {
-            nextSocket.send(JSON.stringify({ action: "your_turn" }));
-            this.log(`Granted turn to ${nextUser}`);
+            nextSocket.send(JSON.stringify({ action: "your_turn", username: nextUser, data: handData }));
+            this.log(`Granted turn to ${nextUser} with data: "${handData}"`);
         } else {
             this.log(`User ${nextUser} is not connected. Skipping turn.`);
             this.grantTurn(); // Recursively grant turn to the next user

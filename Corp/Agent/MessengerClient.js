@@ -50,6 +50,9 @@ class MessengerClient extends EventEmitter {
             case 'channel_message':
                 this.emit('channelMessage', message.message, message.from, message.channel);
                 break;
+            case 'your_turn':
+                this.emit('your_turn', message.username, message.data);
+                break;
             default:
                 // Handle other actions or status messages if needed
                 //console.log('Unhandled message action:', message.action);
@@ -84,9 +87,10 @@ class MessengerClient extends EventEmitter {
         this.ws.send(JSON.stringify(msg));
     }
 
-    raiseHand() {
+    raiseHand(channel) {
         const msg = {
-            action: 'raise_hand'
+            action: 'raise_hand',
+            data: channel
         };
         this.ws.send(JSON.stringify(msg));
     }

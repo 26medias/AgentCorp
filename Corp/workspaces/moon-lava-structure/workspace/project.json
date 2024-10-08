@@ -1,0 +1,103 @@
+{
+    "project": {
+        "name": "moon-lava-structure",
+        "description": "A collaborative project to write a 10,000-word hard sci-fi/horror short story about the discovery of an unknown alien structure in a lava cave on the moon.",
+        "specs": "### Project Specs\n\n**Title:** To be decided by the team\n\n**Genre:** Hard Sci-Fi/Horror\n\n**Word Count:** 10,000 words\n\n**Setting:**\n- Location: The Moon, within a lava cave\n- Time: Near future, during the construction of the first permanent international research base\n\n**Plot Overview:**\n1. Introduction of the setting and characters.\n2. Discovery of the alien structure by the research team.\n3. Initial exploration and scientific analysis of the structure.\n4. Escalation of horror elements as the team uncovers more about the structure.\n5. Climax involving a significant threat or revelation.\n6. Resolution and aftermath.\n\n**Character Development:**\n- Diverse international team of scientists and engineers.\n- Focus on realistic scientific roles and interactions.\n\n**Themes:**\n- Exploration and discovery\n- The unknown and isolation\n- Scientific curiosity vs. safety\n\n**Tone and Style:**\n- Detailed scientific descriptions\n- Suspenseful and atmospheric\n- Tension between scientific wonder and horror\n\n**Research Requirements:**\n- Accurate scientific details about lunar geology, cave formations, and plausible alien biology\n- Technical aspects of lunar base construction\n\n**Deliverables:**\n- Complete short story manuscript\n- Revised drafts following peer review\n- Final editing and proofreading"
+    },
+    "messenger": {
+        "channels": [
+            "#general",
+            "#story-development",
+            "#science-research",
+            "#character-design",
+            "#editing",
+            "#review-feedback"
+        ]
+    },
+    "agents": [
+        {
+            "username": "PM",
+            "role": "Project Manager",
+            "job_description": "Oversees the project, assigns tasks, and ensures project completion.",
+            "responsibilities": [
+                "Assign initial tasks to team members",
+                "Validate work progress",
+                "Decide when the project is completed"
+            ],
+            "messenger_channels": [
+                "#general"
+            ]
+        },
+        {
+            "username": "lead-writer",
+            "role": "Lead Writer",
+            "job_description": "Responsible for creating the main narrative of the story.",
+            "responsibilities": [
+                "Draft the initial outline of the story",
+                "Write the main sections of the story",
+                "Incorporate feedback from the team"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#story-development",
+                "#review-feedback"
+            ]
+        },
+        {
+            "username": "science-consultant",
+            "role": "Science Consultant",
+            "job_description": "Ensures scientific accuracy and plausibility in the story.",
+            "responsibilities": [
+                "Provide scientific insights and data",
+                "Review story for scientific accuracy",
+                "Suggest realistic scientific scenarios"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#science-research"
+            ]
+        },
+        {
+            "username": "character-designer",
+            "role": "Character Designer",
+            "job_description": "Develops and refines the characters in the story.",
+            "responsibilities": [
+                "Create detailed character profiles",
+                "Ensure character consistency",
+                "Collaborate with Writer on character development"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#character-design"
+            ]
+        },
+        {
+            "username": "editor",
+            "role": "Editor",
+            "job_description": "Refines and edits the story for clarity and coherence.",
+            "responsibilities": [
+                "Edit drafts for grammar and style",
+                "Ensure narrative coherence",
+                "Prepare the manuscript for final review"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#editing"
+            ]
+        },
+        {
+            "username": "reviewer",
+            "role": "Peer Reviewer",
+            "job_description": "Reviews drafts and provides feedback for improvements.",
+            "responsibilities": [
+                "Read story drafts and provide feedback",
+                "Suggest improvements for plot and character development",
+                "Collaborate with team for final adjustments"
+            ],
+            "messenger_channels": [
+                "#general",
+                "#review-feedback"
+            ]
+        }
+    ]
+}

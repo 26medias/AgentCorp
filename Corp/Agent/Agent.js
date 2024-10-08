@@ -64,8 +64,10 @@ class Agent {
         });
 
         // Event: Your turn to send a message
-        this.client.on('your_turn', () => {
-            scope.onTurn();
+        this.client.on('your_turn', (username, channel) => {
+            if (username == scope.username) {
+                scope.onTurn(channel);
+            }
         });
 
         // Event: Connection closed
@@ -167,23 +169,24 @@ class Agent {
         const shouldAct = await this.shouldActOnMessage(msg, from, channel);
         if (shouldAct) {
             // Raise hand to request a turn
-            this.client.raiseHand();
+            this.client.raiseHand(channel);
             this.log(`Raised hand to act on message from ${from} in channel ${channel}`);
         }
     }
 
     // Handle the event when it's the agent's turn to act
-    async onTurn() {
+    async onTurn(channel) {
         this.log('Received your_turn event. Initiating action thread.');
         
         await this.newThinkThread({
             type: 'act',
+            channel: channel,
             prompt: false
         });
     }
 
     // Execute actions as instructed by GPT
-    async executeActions(actions) {
+    async executeActions(actions, options) {
         let output = [];
         for (let action of actions) {
             try {
@@ -225,6 +228,9 @@ class Agent {
                                 action: action.action,
                                 output: writeBuffer
                             });
+                            if (options.channel) {
+                                await this.sendChannelMessage(options.channel, `\`${this.username}\` created file \`${item.filename}\`:\n-------\n${item.content}`);
+                            }
                         }
                         break;
                     case "runShellCommand":
@@ -306,8 +312,14 @@ class Agent {
                 type: options.type
             }, 25);
 
+            console.log("historyContextData", historyContextData)
+
             if (!options.prompt) {
-                options.prompt = JSON.stringify(historyContextData.logs[historyContextData.logs.length-1]);
+                if (historyContextData && historyContextData.logs && historyContextData.logs.length>0) {
+                    options.prompt = JSON.stringify(historyContextData.logs[historyContextData.logs.length-1]);
+                } else {
+                    options.prompt = "What should you do?"
+                }
             }
 
             // Fetch relevant context, excluding historyContext message IDs
@@ -341,6 +353,8 @@ class Agent {
             });
 
             // Call GPT with the assembled prompts
+            //this.log("[system_prompt]", system_prompt)
+            this.log("[options.prompt]", options.prompt)
             const gptResponse = await this.gpt.callGPT(system_prompt, options.prompt);
             const response = JSON.parse(gptResponse);
             this.log("GPT Response:", JSON.stringify(response, null, 4));
@@ -351,8 +365,12 @@ class Agent {
                 return true;
             } else {
                 this.log("[Executing actions]");
-                const actionResponse = await this.executeActions(response.actions);
-                return actionResponse;
+                const actionResponse = await this.executeActions(response.actions, options);
+                return await this.newThinkThread({
+                    ...options,
+                    type: 'action_loop',
+                    prompt: JSON.stringify(actionResponse, null, 4)
+                })
             }
         } catch (error) {
             this.log('Error in newThinkThread:', error);
@@ -384,6 +402,7 @@ class Agent {
 
             // Load and populate the history prompt template
             const contextPrompt = this.gpt.getPrompt(this.getFile("./prompts/context__history.txt"), {
+                channel: options.channel,
                 messages
             });
 

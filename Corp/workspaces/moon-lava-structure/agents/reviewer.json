@@ -1,0 +1,14 @@
+{
+    "username": "reviewer",
+    "role": "Peer Reviewer",
+    "job_description": "Reviews drafts and provides feedback for improvements.",
+    "responsibilities": [
+        "Read story drafts and provide feedback",
+        "Suggest improvements for plot and character development",
+        "Collaborate with team for final adjustments"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#review-feedback"
+    ]
+}

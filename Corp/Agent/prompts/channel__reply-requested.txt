@@ -1,6 +1,0 @@
-## Instructions
-
-{from} has replied your message on channel {channel}.
-You are now in a loop.
-You can plan your actions over multiple turns if you need to execute actions first and/or work collaboratively with other team members before replying.
-You do not have to reply to them. You can end your loop on the next turn if you wish.

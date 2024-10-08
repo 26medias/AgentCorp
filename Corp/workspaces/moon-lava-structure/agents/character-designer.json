@@ -1,0 +1,14 @@
+{
+    "username": "character-designer",
+    "role": "Character Designer",
+    "job_description": "Develops and refines the characters in the story.",
+    "responsibilities": [
+        "Create detailed character profiles",
+        "Ensure character consistency",
+        "Collaborate with Writer on character development"
+    ],
+    "messenger_channels": [
+        "#general",
+        "#character-design"
+    ]
+}
